@@ -1,1 +1,2 @@
-# YoutubeTranscriber
+# YouTube Video Transcriber & AI Summarizer
+An intelligent web application that automatically extracts transcripts from YouTube video URLs and leverages advanced Large Language Models (LLMs) to generate precise summaries, key insights, and multilingual translations—including full Urdu support with Right-to-Left (RTL) formatting. Built with Python and modern web frameworks, the platform features a secure authentication system with Google OAuth and OTP verification, alongside dynamic sidebar session management that automatically labels saved chats with actual video titles instead of raw URLs.
