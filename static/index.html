@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcriber Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="dark-theme">
+    <!-- Auth Modal Overlay -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-card" id="authCardMain">
+            <div class="logo auth-logo">
+                <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                <h2>Transcriber Pro</h2>
+            </div>
+            <h3 id="authTitle">Sign In</h3>
+            <p class="auth-subtitle">Unlock fast extraction & AI summaries</p>
+            
+            <div id="g_id_onload"
+                 data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleSsoResponse"
+                 data-auto_prompt="false">
+            </div>
+            
+            <div class="g_id_signin" style="margin-bottom: 20px; display:flex; justify-content:center;"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="100%">
+            </div>
+            
+            <div class="auth-divider">
+                <span>OR</span>
+            </div>
+
+            <form id="authForm" class="auth-form">
+                <div class="input-box">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="authEmail" placeholder="Email Address" required>
+                </div>
+                <div class="input-box">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="authPassword" placeholder="Password" required>
+                </div>
+                <div class="input-box hidden" id="confirmPasswordBox">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="authConfirmPassword" placeholder="Confirm Password">
+                </div>
+                <button type="submit" class="btn-auth">Continue</button>
+            </form>
+            <p class="auth-switch">Don't have an account? <a href="#" id="authSwitchBtn">Sign up</a></p>
+        </div>
+
+        <!-- OTP Card (Hidden initially) -->
+        <div class="auth-card hidden" id="authCardOtp">
+            <div class="logo auth-logo">
+                <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+                <h2>Verification</h2>
+            </div>
+            <h3>Enter OTP</h3>
+            <p class="auth-subtitle">We've sent a one-time password to your email.</p>
+            <form id="otpForm" class="auth-form">
+                <div class="input-box">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="authOtp" placeholder="6-digit code" required autocomplete="off" maxlength="6">
+                </div>
+                <button type="submit" class="btn-auth">Verify Account</button>
+            </form>
+            <p class="auth-switch"><a href="#" id="btnBackToAuth">Back to Login</a></p>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsOverlay" class="auth-overlay hidden">
+        <div class="auth-card settings-card">
+            <div class="logo auth-logo" style="margin-bottom:10px;">
+                <div class="logo-icon"><i class="fas fa-cog"></i></div>
+                <h2>Settings</h2>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 15px;">AI Engine Configuration</h3>
+            <p class="auth-subtitle" style="text-align: left; font-size: 0.9rem;">To power the advanced Summaries, please provide your Google Gemini API Key.</p>
+            
+            <form id="settingsForm" class="auth-form" style="margin-top:20px;">
+                <div class="input-box">
+                    <i class="fas fa-key"></i>
+                    <input type="password" id="geminiApiKey" placeholder="AIzaSy..." required>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-secondary); text-align:left; margin-bottom:15px;">Your key is stored securely in your browser's local storage.</p>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" class="btn-secondary" id="btnCancelSettings" style="flex:1;">Cancel</button>
+                    <button type="submit" class="btn-auth" style="flex:1;">Save Key</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="app-layout" id="appLayout" style="filter: blur(5px); pointer-events: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                    <h2>Transcriber Pro</h2>
+                </div>
+                <button class="sidebar-close-btn" id="sidebarCloseBtn"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="sidebar-content">
+                <button class="btn-new" id="newTranscribeBtn">
+                    <i class="fas fa-plus"></i> New Extraction
+                </button>
+
+                <div class="history-section" style="margin-bottom: 20px;">
+                    <button class="btn-secondary" id="btnOpenSettings" style="width:100%; justify-content:center; gap:8px; border: 1px dashed var(--border-color); background:transparent;">
+                        <i class="fas fa-cog"></i> Engine Settings
+                    </button>
+                </div>
+
+                <div class="history-section">
+                    <h3>Recent History</h3>
+                    <div class="history-list" id="historyList">
+                        <!-- History Items populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-info" id="userInfo">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userNameDisplay">Guest</span>
+                </div>
+                <button class="settings-btn" id="logoutBtn" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-panel">
+            <div class="top-nav">
+                <button class="sidebar-toggle" id="sidebarToggle" title="Toggle Sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">
+                    <i class="fas fa-sun"></i>
+                </button>
+            </div>
+            
+            <div class="main-container">
+                <!-- Header Area -->
+                <div class="hero-section" id="heroSection">
+                    <h1 class="gradient-text">Extract & Summarize</h1>
+                    <p class="subtitle">Instantly pull full transcripts and AI summaries from any YouTube video.</p>
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-card">
+                    <form id="transcribeForm" class="url-form">
+                        <div class="input-group">
+                            <i class="fab fa-youtube input-icon"></i>
+                            <input type="text" id="youtubeUrl" placeholder="Paste YouTube link here..." required autocomplete="off">
+                            <button type="submit" class="btn-transcribe" id="submitBtn">
+                                <span>Transcribe</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Processing Skeleton / Spinner -->
+                <div class="processing-state hidden" id="processingState">
+                    <div class="spinner-container">
+                        <div class="spinner"></div>
+                        <p id="processingText">Extracting transcript instantly...</p>
+                    </div>
+                    <div class="skeleton-loader">
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text short"></div>
+                    </div>
+                </div>
+
+                <!-- Results Area -->
+                <div class="results-card hidden" id="resultsCard">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="transcript">
+                            <i class="fas fa-align-left"></i> Full Transcript
+                        </button>
+                        <button class="tab-btn" data-tab="summary">
+                            <i class="fas fa-list-ul"></i> AI Summary
+                        </button>
+                        <div class="tab-actions">
+                            <button class="copy-btn" id="copyBtn" title="Copy to Clipboard">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="translation-bar" id="translationBar" style="padding: 15px 20px; border-bottom: 1px dashed var(--border-color); background: var(--bg-card); display: flex; align-items: center; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">Select output language for Transcript and Summary:</span>
+                        <div style="display: flex; gap: 12px;">
+                            <select id="targetLanguage" class="lang-select">
+                                <option value="en" selected>English</option>
+                                <option value="hi">Hindi</option>
+                                <option value="ur">Urdu</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                                <option value="zh-cn">Chinese (Simplified)</option>
+                                <option value="ar">Arabic</option>
+                            </select>
+                            <button class="btn-translate" id="btnTranslate">
+                                <i class="fas fa-language"></i> Translate Full Transcript
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- Transcript Tab (Default) -->
+                        <div class="tab-pane active" id="transcriptTab">
+                            <div class="transcript-text" id="transcriptText">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Summary Tab -->
+                        <div class="tab-pane" id="summaryTab">
+                            <div id="summaryActionArea" class="summary-action-area">
+                                <h3>Generate AI Summary</h3>
+                                <p>Extract key points and bullet takeaways from this video.</p>
+                                <button class="btn-summarize" id="generateSummaryBtn">
+                                    <i class="fas fa-magic"></i> Generate Now
+                                </button>
+                            </div>
+                            <ul class="summary-list hidden" id="summaryList">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
