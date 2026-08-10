@@ -2,6 +2,7 @@
   "version": 2,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/", "destination": "/static/index.html" },
     { "source": "/(.*)", "destination": "/static/$1" }
   ]
 }
