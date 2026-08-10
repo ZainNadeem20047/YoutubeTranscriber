@@ -1,3 +1,6 @@
 Flask
+flask-cors
 google-genai
 youtube-transcript-api
+deep-translator
+requests
